@@ -45,8 +45,7 @@ class ShoppingListTestCase(unittest.TestCase):
         res = self.client().post('/shoppinglists/', data=self.shoppinglist1)
         self.assertEqual(res.status_code, 201)
         result_in_json = json.loads(res.data.decode('utf-8').replace("'", "\""))
-        res = self.client().get(
-            '/shoppinglists/{}'.format(result_in_json['id']))
+        res = self.client().get('/shoppinglists/{}'.format(result_in_json['id']))
         self.assertEqual(res.status_code, 200)
         self.assertIn('Food', str(res.data))
 
@@ -72,30 +71,20 @@ class ShoppingListTestCase(unittest.TestCase):
 
     def test_shoppinglist_can_be_edited(self):
         """Test API can edit an existing shoppinglist. (PUT request)"""
-        res = self.client().post(
-            '/shoppinglists/',
-            data={
-                'title': 'Toiletry', 
-                'store':'Gyomu'
-                })
+        res = self.client().post('/shoppinglists/', data=self.shoppinglist2)
         self.assertEqual(res.status_code, 201)
-        res = self.client().put(
-            '/shoppinglists/1',
-            data={
-                "title": "Cleaning stuff", 
-                'store':'Don Quijote'
-            })
+        result_in_json = json.loads(res.data.decode('utf-8').replace("'", "\""))
+        res = self.client().put('/shoppinglists/{}'.format(result_in_json['id']), data=self.shoppinglist3)
         self.assertEqual(res.status_code, 200)
-        results = self.client().get('/shoppinglists/1')
+        results = self.client().get('/shoppinglists/{}'.format(result_in_json['id']))
         self.assertIn('Cleaning', str(results.data))
 
     def test_shoppinglist_deletion(self):
         """Test API can delete an existing shoppinglist. (DELETE request)."""
-        res = self.client().post(
-            '/shoppinglists/',
-            data={'title': 'Toiletry', 'store':'Gyomu'})
+        res = self.client().post('/shoppinglists/',data=self.shoppinglist2)
         self.assertEqual(res.status_code, 201)
-        res = self.client().delete('/shoppinglists/1')
+        result_in_json = json.loads(res.data.decode('utf-8').replace("'", "\""))
+        res = self.client().delete('/shoppinglists/{}'.format(result_in_json['id']))
         self.assertEqual(res.status_code, 200)
         # Test to see if it exists, should return a 404
         res = self.client().get('/shoppinglists/1')
@@ -107,9 +96,51 @@ class ShoppingListTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 201)
         result_in_json = json.loads(res.data.decode('utf-8').replace("'", "\""))
         res = self.client().post(
-            '/shoppinglists/{}/items'.format(result_in_json['id']), data=self.item1)
+            '/shoppinglists/{}/items/'.format(result_in_json['id']), data=self.item1)
         self.assertEqual(res.status_code, 201)
+        res = self.client().post(
+            '/shoppinglists/{}/items/'.format(result_in_json['id']), data=self.item2)
+        self.assertEqual(res.status_code, 201)
+        res = self.client().get(
+            '/shoppinglists/{}/items/'.format(result_in_json['id']))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(json.loads(res.data.decode('utf-8'))), 2)
+        self.assertIn('water', str(res.data).lower())
 
+    def test_api_can_add_item_quantities(self):
+        """Test API can add the item quantities when items to an existing shoppinglist."""
+        res = self.client().post('/shoppinglists/', data=self.shoppinglist1)
+        self.assertEqual(res.status_code, 201)
+        result_in_json = json.loads(res.data.decode('utf-8').replace("'", "\""))
+        res = self.client().post(
+            '/shoppinglists/{}/items/'.format(result_in_json['id']), data=self.item1)
+        self.assertEqual(res.status_code, 201)
+        res = self.client().post(
+            '/shoppinglists/{}/items/'.format(result_in_json['id']), data=self.item1)
+        self.assertEqual(res.status_code, 201)
+        res = self.client().get(
+            '/shoppinglists/{}/items/'.format(result_in_json['id']))
+        self.assertEqual(res.status_code, 200)
+        jsondata = json.loads(res.data.decode('utf-8'))
+        self.assertEqual(len(jsondata), 1)
+        total = jsondata[0].get('quantity')
+        self.assertEqual(total, self.item1['quantity'] * 2)
+        self.assertIn('apples', str(res.data).lower())
+
+    def test_shoppinglistitem_deletion(self):
+        """Test API can delete an existing shoppinglist's item. (DELETE request)."""
+        res = self.client().post('/shoppinglists/', data=self.shoppinglist2)
+        self.assertEqual(res.status_code, 201)
+        listid = json.loads(res.data.decode('utf-8').replace("'", "\""))['id']
+        res = self.client().post(
+            '/shoppinglists/{}/items/'.format(listid), data=self.item1)
+        self.assertEqual(res.status_code, 201)
+        result_in_json = json.loads(res.data.decode('utf-8').replace("'", "\""))
+        res = self.client().delete('/shoppinglists/{}/items/{}'.format(listid, result_in_json['id']))
+        self.assertEqual(res.status_code, 200)
+        # Test to see if it exists, should return a 404
+        res = self.client().get('/shoppinglists/{}/items/{}'.format(listid, result_in_json['id']))
+        self.assertEqual(res.status_code, 404)
 
     def tearDown(self):
         """teardown all initialized variables."""

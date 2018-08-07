@@ -1,1 +1,3 @@
-{}
+{
+  "test_api.py::ShoppingListTestCase::test_shoppinglistitem_deletion": true
+}

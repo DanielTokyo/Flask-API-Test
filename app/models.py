@@ -44,10 +44,11 @@ class Item(db.Model):
     shoppinglist_id = db.Column(db.Integer, db.ForeignKey('shoppinglists.id'))
     shoppinglist = db.relationship("ShoppingList")
 
-    def __init__(self, name, quantity):
+    def __init__(self, name, quantity, shoppinglist_id):
         """initialize with name and quantity."""
         self.name = name
         self.quantity = quantity
+        self.shoppinglist_id = shoppinglist_id
 
     def __repr__(self):
         return "<Item: {}>".format(self.name)

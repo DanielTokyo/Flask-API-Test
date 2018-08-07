@@ -11,7 +11,7 @@ from instance.config import app_config
 db = SQLAlchemy()
 
 def create_app(config_name):
-    from app.models import ShoppingList
+    from app.models import ShoppingList, Item
     app = FlaskAPI(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
     app.config.from_pyfile('config.py')
@@ -36,6 +36,8 @@ def create_app(config_name):
                 })
                 response.status_code = 201
                 return response
+            else:
+                abort(400)
         else:
             # GET
             shoppinglists = ShoppingList.query.all()
@@ -55,7 +57,7 @@ def create_app(config_name):
 
     @app.route('/shoppinglists/<int:id>', methods=['GET', 'PUT', 'DELETE'])
     def shoppinglist_manipulation(id, **kwargs):
-        # retrieve a shoppinglist using its ID
+        # retrieve the shoppinglist using its ID
         shoppinglist = ShoppingList.query.filter_by(id=id).first()
         if not shoppinglist:
             # Raise an HTTPException with a 404 not found status code
@@ -66,7 +68,6 @@ def create_app(config_name):
             return {
                 "message": "shoppinglist {} deleted successfully".format(shoppinglist.id) 
             }, 200
-
         elif request.method == 'PUT':
             title = str(request.data.get('title', ''))
             store = str(request.data.get('store', ''))
@@ -112,5 +113,83 @@ def create_app(config_name):
         response = jsonify(results)
         response.status_code = 200
         return response
+
+    @app.route('/shoppinglists/<int:id>/items/', methods=['POST', 'GET'])
+    def shoppinglistitems(id):
+        if request.method == "POST":
+            name = str(request.data.get('name', ''))
+            quantity = int(request.data.get('quantity', ''))
+            if name and quantity:
+                item = Item.query.filter(Item.shoppinglist_id==id).filter(Item.name.ilike(name)).first()
+                if item:
+                    item.quantity += quantity
+                else:
+                    item = Item(name=name, quantity=quantity, shoppinglist_id=id)
+                db.session.add(item)
+                db.session.commit()
+                response = jsonify({
+                    'id': item.id,
+                    'name': item.name,
+                    'quantity':item.quantity,
+                    'shoppinglist_id':item.shoppinglist_id
+                })
+                response.status_code = 201
+                return response
+            else:
+                abort(400)
+        else:
+            # GET
+            items = Item.query.filter_by(shoppinglist_id=id)
+            results = []
+            for item in items:
+                obj = {
+                    'id': item.id,
+                    'name': item.name,
+                    'quantity':item.quantity,
+                    'shoppinglist_id':item.shoppinglist_id
+                }
+                results.append(obj)
+            response = jsonify(results)
+            response.status_code = 200
+            return response
+
+    @app.route('/shoppinglists/<int:lid>/items/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+    def shoppinglistitem_manipulation(lid, id, **kwargs):
+        # retrieve the shoppinglist using its ID
+        item = Item.query.filter_by(shoppinglist_id=lid).filter_by(id=id).first()
+        if not item:
+            # Raise an HTTPException with a 404 not found status code
+            abort(404)
+        if request.method == 'DELETE':
+            db.session.delete(item)
+            db.session.commit()
+            return {
+                "message": "shoppinglist item {} deleted successfully".format(item.id) 
+            }, 200
+        elif request.method == 'PUT':
+            name = str(request.data.get('name', ''))
+            quantity = int(request.data.get('quantity', ''))
+            item.name = name
+            item.quantity = quantity
+            db.session.add(item)
+            db.session.commit()
+            response = jsonify({
+                'id': item.id,
+                'name': item.name,
+                'quantity':item.quantity,
+                'shoppinglist_id':shoppinglist_id
+            })
+            response.status_code = 200
+            return response
+        else:
+            # GET
+            response = jsonify({
+                'id': item.id,
+                'name': item.name,
+                'quantity':item.quantity,
+                'shoppinglist_id':shoppinglist_id
+            })
+            response.status_code = 200
+            return response
 
     return app
