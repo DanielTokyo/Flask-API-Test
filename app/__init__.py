@@ -95,4 +95,22 @@ def create_app(config_name):
             response.status_code = 200
             return response
 
+    @app.route('/shoppinglists/search/<string:title>', methods=['GET'])
+    def shoppinglist_search(title):
+        # retrieve shoppinglists that match the title
+        shoppinglists = ShoppingList.query.filter(ShoppingList.title.ilike('%'+title+'%')).all()
+        results = []
+        for shoppinglist in shoppinglists:
+            obj = {
+                'id': shoppinglist.id,
+                'title': shoppinglist.title,
+                'store':shoppinglist.store,
+                'date_created': shoppinglist.date_created,
+                'date_modified': shoppinglist.date_modified
+            }
+            results.append(obj)
+        response = jsonify(results)
+        response.status_code = 200
+        return response
+
     return app
