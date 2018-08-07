@@ -177,7 +177,7 @@ def create_app(config_name):
                 'id': item.id,
                 'name': item.name,
                 'quantity':item.quantity,
-                'shoppinglist_id':shoppinglist_id
+                'shoppinglist_id':item.shoppinglist_id
             })
             response.status_code = 200
             return response
@@ -187,7 +187,7 @@ def create_app(config_name):
                 'id': item.id,
                 'name': item.name,
                 'quantity':item.quantity,
-                'shoppinglist_id':shoppinglist_id
+                'shoppinglist_id':item.shoppinglist_id
             })
             response.status_code = 200
             return response
