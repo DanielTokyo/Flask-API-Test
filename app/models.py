@@ -10,7 +10,7 @@ class ShoppingList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255))
     store = db.Column(db.String(255))
-    items = db.relationship("Item", backref="shoppinglist", lazy='dynamic')
+    items = db.relationship("Item", lazy='dynamic')
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime, default=db.func.current_timestamp(),

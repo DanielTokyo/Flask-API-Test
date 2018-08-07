@@ -46,22 +46,22 @@ class ShoppingListTestCase(unittest.TestCase):
         """Test API can edit an existing shoppinglist. (PUT request)"""
         rv = self.client().post(
             '/shoppinglists/',
-            data={'title': 'Toiletry'})
+            data={'title': 'Toiletry', 'store':'Gyomu'})
         self.assertEqual(rv.status_code, 201)
         rv = self.client().put(
             '/shoppinglists/1',
             data={
-                "name": "Cleaning stuff"
+                "title": "Cleaning stuff", 'store':'Don Quijote'
             })
         self.assertEqual(rv.status_code, 200)
         results = self.client().get('/shoppinglists/1')
-        self.assertIn('Dont just eat', str(results.data))
+        self.assertIn('Cleaning', str(results.data))
 
     def test_shoppinglist_deletion(self):
         """Test API can delete an existing shoppinglist. (DELETE request)."""
         rv = self.client().post(
             '/shoppinglists/',
-            data={'name': 'Toiletry'})
+            data={'title': 'Toiletry', 'store':'Gyomu'})
         self.assertEqual(rv.status_code, 201)
         res = self.client().delete('/shoppinglists/1')
         self.assertEqual(res.status_code, 200)
