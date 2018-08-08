@@ -1,5 +1,7 @@
 .py[co]
 .DS_
+.vscode
+.cache
 __pycache__
 # Packages
 .egg
