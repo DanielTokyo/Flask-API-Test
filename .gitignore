@@ -1,5 +1,10 @@
 .py[co]
 .DS_
+.vscode
+.cache
+__pycache__
+app/__pycache__
+instance/__pycache__
 # Packages
 .egg
 .egg-info
